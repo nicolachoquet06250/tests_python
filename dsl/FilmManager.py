@@ -12,7 +12,8 @@ class FilmManager(object):
         if title is None:
             return Film(self)
         for film in self.films:
-            if film.title() is title:
+            print(film.title() == title)
+            if film.title() == title:
                 return film
         return None
 

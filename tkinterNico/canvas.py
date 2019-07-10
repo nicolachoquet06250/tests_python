@@ -1,9 +1,14 @@
+from datetime import date
 from tkinter import *
 from random import randrange
+
+from dsl.FilmManager import FilmManager
 
 if __name__ == '__main__':
     x1, y1, x2, y2 = 10, 190, 190, 10
     coul = 'dark green'
+
+    liste = FilmManager().title("MCU")
 
     def get_menu_buttons(win):
         return [
@@ -18,6 +23,10 @@ if __name__ == '__main__':
             {
                 "text": "Déssiner une cible",
                 "command": lambda: drow_cible(win)
+            },
+            {
+                "text": "Liste de films",
+                "command": lambda: show_films_list(win)
             }
         ]
 
@@ -44,11 +53,11 @@ if __name__ == '__main__':
         _.quit()
         _.destroy()
 
-    def create_main_menu_buttons(_: Tk):
+    def create_main_menu_buttons(_: Tk, side_return = None, side_quit = None):
         _return = Button(_, text="Retour", command=lambda: menu(_))
-        _return.pack()
+        _return.pack() if side_return is None else _return.pack(side=side_return)
         _quit = Button(_, text='Quitter', command=lambda: quit_app(_))
-        _quit.pack()
+        _quit.pack() if side_quit is None else _quit.pack(side=side_quit)
 
     def menu(subwin: Tk or None = None):
         win = Tk()
@@ -119,6 +128,51 @@ if __name__ == '__main__':
         can1.pack(side=LEFT)
 
         create_main_menu_buttons(subwin)
+
+        subwin.mainloop()
+
+    def show_films_list(win):
+        quit_win(win)
+
+        def open_add_film_win(liste_win: Frame):
+            _ = Tk()
+            _.title("Ajouter un film à la liste" + liste.title())
+
+            input_content = StringVar(_, '')
+            input = Entry(_, width=200, textvariable=input_content)
+            input.pack(side=TOP)
+
+            def new_film():
+                liste.film().title(input_content.get())\
+                    .realisation_date(date.today())\
+                    .release_date(date.today()).build()
+                liste_win.pack()
+
+            valid = Button(_, text="Valider", command=lambda: new_film())
+            valid.pack(side=BOTTOM)
+
+            _.mainloop()
+
+        subwin = Tk()
+        subwin.title(liste.title())
+
+        frame = Frame(master=subwin, width=200, height=200)
+        my_liste = Frame(frame)
+        for film in liste.films:
+            title = film.title()
+            text = Label(my_liste, text=title)
+            text.pack(side=TOP)
+
+        form = Frame(master=frame, width=200, height=2)
+        add_film = Button(master=form, text="Ajouter Un film", command=lambda: open_add_film_win(my_liste))
+        add_film.pack()
+        form.pack(side=BOTTOM)
+
+        my_liste.pack()
+
+        frame.pack(side=TOP)
+
+        create_main_menu_buttons(subwin, LEFT, RIGHT)
 
         subwin.mainloop()
 

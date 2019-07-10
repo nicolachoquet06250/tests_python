@@ -106,7 +106,7 @@ class Film(Builder):
             film_string += ": \n"
             for director in self.directors():
                 film_string += "\t\t - " + str(director) + "\n"
-        else:
+        elif self.directors().__len__() is 1:
             film_string += str(self.directors()[0]) + "\n"
 
         film_string += "\t- Produced by "
@@ -114,7 +114,7 @@ class Film(Builder):
             film_string += ": \n"
             for producer in self.producers():
                 film_string += "\t\t - " + str(producer) + "\n"
-        else:
+        elif self.producers().__len__() is 1:
             film_string += str(self.producers()[0]) + "\n"
 
         film_string += "\t- With actors :\n"
