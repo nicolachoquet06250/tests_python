@@ -12,11 +12,11 @@ def menu(window: GraphTk):
 	window.add_title("Menu")
 	window.add_button('Quitter', command=lambda: MyHelpers.quit(MyHelpers.APP, window))
 	window.add_button('Déssiner une rosasse', command=lambda: GraphTk(
-		GraphTk.ROSASSE, {"before": lambda: MyHelpers.quit(MyHelpers.WINDOW, window)}))
+		GraphTk.ROSASSE, {"before": lambda _: MyHelpers.quit(MyHelpers.WINDOW, window)}))
 	window.add_button('Déssiner une cible', command=lambda: GraphTk(
-		GraphTk.CIBLE, {"before": lambda: MyHelpers.quit(MyHelpers.WINDOW, window)}))
+		GraphTk.CIBLE, {"before": lambda _: MyHelpers.quit(MyHelpers.WINDOW, window)}))
 	window.add_button('Liste de films', command=lambda: GraphTk(
-		GraphTk.MOVIES_LIST, {"before": lambda: MyHelpers.quit(MyHelpers.WINDOW, window)}))
+		GraphTk.MOVIES_LIST, {"before": lambda _: MyHelpers.quit(MyHelpers.WINDOW, window)}))
 	window.show()
 
 
@@ -77,6 +77,11 @@ def cible(window: GraphTk):
 
 # callback of movies list window
 def movies_list(window: GraphTk):
+	params = {
+		"width": window.get_width(),
+		"height": window.get_height(),
+		"position": window.get_position()
+	}
 
 	def open_add_film_win(_: GraphTk):
 		_ = GraphTk(None, None, True)
@@ -85,16 +90,24 @@ def movies_list(window: GraphTk):
 		input_content = StringVar(_.root, '')
 		_.add_entry(None, input_content, 200, GraphTk.GraphTop)
 
+		def build_with_params(new_window: GraphTk):
+			new_window.root.geometry(
+				"%dx%d%+d%+d" % (params["width"], params["height"], params["position"]["X"], params["position"]["Y"]))
+
 		def new_film():
+			print("new film")
 
 			def quit():
 				MyHelpers.quit(MyHelpers.WINDOW, window)
 				MyHelpers.quit(MyHelpers.WINDOW, _)
 
+			def before_new_win(new_window: GraphTk):
+				quit()
+
 			my_movies_list.film().title(input_content.get()) \
 				.realisation_date(date.today()) \
 				.release_date(date.today()).build()
-			GraphTk(GraphTk.MOVIES_LIST, {"before": quit})
+			GraphTk(GraphTk.MOVIES_LIST, {"before": build_with_params, "after": before_new_win})
 
 		_.add_button(text="Valider", command=new_film, side=GraphTk.GraphBottom)
 		_.show()

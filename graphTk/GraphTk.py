@@ -42,11 +42,12 @@ class GraphTk(object):
 		current_local_window = GraphTk(None, None, True)
 		current_local_window.__type__(self.window_type)
 		current_local_window.add_title(current_local_window.__is__())
+		result_before = None
 		if before_process is not None:
-			before_process()
-		GraphTk.types[self.window_type](current_local_window)
+			result_before = before_process(current_local_window)
+		GraphTk.types[self.window_type](current_local_window) if result_before is None else GraphTk.types[self.window_type](current_local_window, result_before)
 		if after_process is not None:
-			after_process()
+			after_process(current_local_window)
 
 	def __type__(self, type_window):
 		self.window_type = type_window
@@ -88,6 +89,30 @@ class GraphTk(object):
 
 	def get_title(self):
 		return self.title
+
+	def get_width(self):
+		geometry = self.root.geometry()
+		r = [i for i in range(0, len(geometry)) if not geometry[i].isdigit()]
+		return int(geometry[0:r[0]])
+
+	def get_height(self):
+		geometry = self.root.geometry()
+		r = [i for i in range(0, len(geometry)) if not geometry[i].isdigit()]
+		return int(geometry[r[0]+1:r[1]])
+
+	def get_size(self):
+		return {
+			"W": self.get_width(),
+			"H": self.get_height()
+		}
+
+	def get_position(self):
+		geometry = self.root.geometry()
+		r = [i for i in range(0, len(geometry)) if not geometry[i].isdigit()]
+		return {
+			"X": int(geometry[r[1]+1:r[2]]),
+			"Y": int(geometry[r[2]+1:])
+		}
 
 	def show(self):
 		self.root.mainloop()
