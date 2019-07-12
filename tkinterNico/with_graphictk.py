@@ -4,62 +4,34 @@ from tkinter import StringVar, Frame, Label, Button
 
 from dsl.FilmManager import FilmManager
 from graphTk.GraphTk import GraphTk
+from tkinterNico.MyHelpers.MyHelpers import MyHelpers
 
 
-def quit_app(_):
-	_ensure = GraphTk(None, None, True)
-
-	def i_am_sure():
-		quit_win(_ensure)
-		quit_win(_)
-
-	def i_am_not_sure():
-		quit_win(_ensure)
-
-	_ensure.add_title("Êtes vous sûr ?")
-	_ensure.add_label("Voulez vous vraiment quitter l'application ?", GraphTk.GraphTop)
-	_ensure.add_button("Oui, je quitte !", command=i_am_sure, side=GraphTk.GraphLeft)
-	_ensure.add_button("Non, je ne veux pas quitter", command=i_am_not_sure)
-	_ensure.show()
-
-
-def quit_win(_):
-	if type(_) is GraphTk:
-		_.hide()
-	else:
-		_.quit()
-		_.destroy()
-
-
-def create_main_menu_buttons(_: GraphTk, side_return=None, side_quit=None):
-	_.add_button("Retour", command=lambda: GraphTk(
-		GraphTk.MENU, {"before": lambda: quit_win(_)}), side=side_return)
-	_.add_button("Quitter", command=lambda: quit_app(_), side=side_quit)
-
-
+# callback of menu window
 def menu(window: GraphTk):
 	window.add_title("Menu")
-	window.add_button('Quitter', command=lambda: quit_app(window))
+	window.add_button('Quitter', command=lambda: MyHelpers.quit(MyHelpers.APP, window))
 	window.add_button('Déssiner une rosasse', command=lambda: GraphTk(
-		GraphTk.ROSASSE, {"before": lambda: quit_win(window)}))
+		GraphTk.ROSASSE, {"before": lambda: MyHelpers.quit(MyHelpers.WINDOW, window)}))
 	window.add_button('Déssiner une cible', command=lambda: GraphTk(
-		GraphTk.CIBLE, {"before": lambda: quit_win(window)}))
+		GraphTk.CIBLE, {"before": lambda: MyHelpers.quit(MyHelpers.WINDOW, window)}))
 	window.add_button('Liste de films', command=lambda: GraphTk(
-		GraphTk.MOVIES_LIST, {"before": lambda: quit_win(window)}))
+		GraphTk.MOVIES_LIST, {"before": lambda: MyHelpers.quit(MyHelpers.WINDOW, window)}))
 	window.show()
 
 
+# callback of rosasse window
 def rosasse(window: GraphTk):
 
 	window.add_title("Rosasse")
 
-	def drowline(can1):
+	def draw_line(can1):
 		"""Tracé d'une ligne dans le canvas can1"""
 		global x1, y1, x2, y2, color
 		can1.create_line(x1, y1, x2, y2, width=2, fill=color)
 		y2, y1 = y2 + 10, y1 - 10
 
-	def changecolor():
+	def change_color():
 		"""changement aléatoir de couleur du tracé"""
 		global color
 		pal = ['purple', 'cyan', 'maroon', 'green', 'red', 'blue', 'orange', 'yellow']
@@ -68,14 +40,15 @@ def rosasse(window: GraphTk):
 
 	canvas = window.add_canvas('dark grey', 200, 200, GraphTk.GraphLeft)
 
-	create_main_menu_buttons(window)
+	MyHelpers.create_main_menu_buttons(window)
 
-	window.add_button(text='Tracer une ligne', command=lambda: drowline(canvas))
-	window.add_button(text='Autre couleur', command=changecolor)
+	window.add_button(text='Tracer une ligne', command=lambda: draw_line(canvas))
+	window.add_button(text='Autre couleur', command=change_color)
 
 	window.show()
 
 
+# callback of cible window
 def cible(window: GraphTk):
 
 	def create_canvas(canvas):
@@ -98,13 +71,14 @@ def cible(window: GraphTk):
 
 	window.add_title("Cible")
 	window.add_canvas('dark grey', 200, 200, GraphTk.GraphLeft, create_canvas)
-	create_main_menu_buttons(window)
+	MyHelpers.create_main_menu_buttons(window)
 	window.show()
 
 
+# callback of movies list window
 def movies_list(window: GraphTk):
 
-	def open_add_film_win(list_win: Frame):
+	def open_add_film_win(_: GraphTk):
 		_ = GraphTk(None, None, True)
 		_.add_title("Ajouter un film à la liste" + my_movies_list.title())
 
@@ -112,10 +86,15 @@ def movies_list(window: GraphTk):
 		_.add_entry(None, input_content, 200, GraphTk.GraphTop)
 
 		def new_film():
+
+			def quit():
+				MyHelpers.quit(MyHelpers.WINDOW, window)
+				MyHelpers.quit(MyHelpers.WINDOW, _)
+
 			my_movies_list.film().title(input_content.get()) \
 				.realisation_date(date.today()) \
 				.release_date(date.today()).build()
-			list_win.pack()
+			GraphTk(GraphTk.MOVIES_LIST, {"before": quit})
 
 		_.add_button(text="Valider", command=new_film, side=GraphTk.GraphBottom)
 		_.show()
@@ -128,7 +107,7 @@ def movies_list(window: GraphTk):
 			text.pack(side=GraphTk.GraphTop)
 
 		form = Frame(master=frame, width=200, height=2)
-		add_film = Button(master=form, text="Ajouter Un film", command=lambda: open_add_film_win(my_list))
+		add_film = Button(master=form, text="Ajouter Un film", command=lambda: open_add_film_win(_))
 		add_film.pack()
 		form.pack(side=GraphTk.GraphBottom)
 
@@ -138,19 +117,21 @@ def movies_list(window: GraphTk):
 
 	window.add_title(my_movies_list.title())
 	window.add_frame(None, 200, 200, GraphTk.GraphTop, build_main_frame)
-	create_main_menu_buttons(window, GraphTk.GraphLeft, GraphTk.GraphRight)
+	MyHelpers.create_main_menu_buttons(window, GraphTk.GraphLeft, GraphTk.GraphRight)
 	window.show()
 
 
 if __name__ == '__main__':
+	# define global variables
 	x1, y1, x2, y2 = 10, 190, 190, 10
 	color = 'dark green'
-
 	my_movies_list = FilmManager().title("MCU")
 
+	# define windows types and their callback
 	GraphTk.add_type(GraphTk.MENU, callback=menu)
 	GraphTk.add_type(GraphTk.ROSASSE, callback=rosasse)
 	GraphTk.add_type(GraphTk.CIBLE, callback=cible)
 	GraphTk.add_type(GraphTk.MOVIES_LIST, callback=movies_list)
 
+	# start menu window
 	GraphTk(GraphTk.MENU)
