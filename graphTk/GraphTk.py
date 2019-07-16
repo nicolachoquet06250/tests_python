@@ -1,4 +1,4 @@
-from tkinter import Tk, Label, Button, TOP, LEFT, RIGHT, BOTTOM, Canvas, Frame, StringVar, Entry
+from tkinter import Toplevel, Tk, Label, Button, TOP, LEFT, RIGHT, BOTTOM, Canvas, Frame, StringVar, Entry
 
 
 class GraphTk(object):
@@ -22,6 +22,12 @@ class GraphTk(object):
 		self.window_type: str or None = None
 		self.root: Tk or None = Tk() if create_window else None
 		self.title: str or None = None
+		self.width = self.height = 200
+		if create_window:
+			self.width_screen = self.root.winfo_screenwidth()  # width of the screen
+			self.height_screen = self.root.winfo_screenheight()  # height of the screen
+		else:
+			self.width_screen = self.height_screen = 0
 		if type_window is not None:
 			self.__type__(type_window)
 			if process is not None:
@@ -36,16 +42,13 @@ class GraphTk(object):
 				self.init()
 
 	def init(self, before_process: callable or None = None, after_process: callable or None = None):
-		self.process_init(before_process, after_process)
-
-	def process_init(self, before_process: callable or None = None, after_process: callable or None = None):
 		current_local_window = GraphTk(None, None, True)
 		current_local_window.__type__(self.window_type)
 		current_local_window.add_title(current_local_window.__is__())
-		result_before = None
+		current_local_window.add_size(200, 200, True)
 		if before_process is not None:
-			result_before = before_process(current_local_window)
-		GraphTk.types[self.window_type](current_local_window) if result_before is None else GraphTk.types[self.window_type](current_local_window, result_before)
+			before_process(current_local_window)
+		GraphTk.types[self.window_type](current_local_window)
 		if after_process is not None:
 			after_process(current_local_window)
 
@@ -57,6 +60,17 @@ class GraphTk(object):
 			return self.window_type
 		return self.window_type is type_window
 
+	def __center__(self, center_in_first_screen: bool = True):
+		y = (self.height_screen / 2) - self.height
+		if center_in_first_screen is True:
+			x = (self.width_screen / 4) - self.width
+		else:
+			x = self.width_screen / 2 + ((self.width_screen / 4) - self.width)
+		self.root.geometry('%dx%d+%d+%d' % (self.width, self.height, x, y))
+
+	def __align_top_left__(self):
+		self.root.geometry('%dx%d+%d+%d' % (self.width, self.height, 0, 0))
+
 	def add_label(self, text, side: str or None = None):
 		label = Label(master=self.root, text=text)
 		label.pack() if side is None else label.pack(side=side)
@@ -64,6 +78,13 @@ class GraphTk(object):
 	def add_title(self, title: str):
 		self.title = title
 		return self.root.title(title)
+
+	def add_size(self, w=200, h=200, center_in_first_screen: bool or None = None):
+		self.width = w
+		self.height = h
+		self.__center__(center_in_first_screen) \
+			if center_in_first_screen is True or center_in_first_screen is False \
+			else self.__align_top_left__()
 
 	def add_button(self, text, command, side: str or None = None):
 		button = Button(self.root, text=text, command=command)
@@ -76,14 +97,16 @@ class GraphTk(object):
 		canvas.pack() if side is None else canvas.pack(side=side)
 		return canvas
 
-	def add_frame(self, master=None, width=200, height=200, side: str or None = None, callback: callable or None = None):
+	def add_frame(self, master=None, width=200, height=200, side: str or None = None,
+					callback: callable or None = None):
 		frame = Frame(master=self.root if master is None else master, width=width, height=height)
 		if callback is not None:
 			frame = callback(frame, self)
 		frame.pack() if side is None else frame.pack(side=side)
 		return frame
 
-	def add_entry(self, default_text: str or None = None, default_variable_text: StringVar or None = None, width=200, side: str or None = None):
+	def add_entry(self, default_text: str or None = None, default_variable_text: StringVar or None = None, width=200,
+					side: str or None = None):
 		entry = Entry(self.root, text=default_text, textvariable=default_variable_text, width=width)
 		entry.pack() if side is None else entry.pack(side=side)
 
@@ -98,7 +121,7 @@ class GraphTk(object):
 	def get_height(self):
 		geometry = self.root.geometry()
 		r = [i for i in range(0, len(geometry)) if not geometry[i].isdigit()]
-		return int(geometry[r[0]+1:r[1]])
+		return int(geometry[r[0] + 1:r[1]])
 
 	def get_size(self):
 		return {
@@ -110,8 +133,8 @@ class GraphTk(object):
 		geometry = self.root.geometry()
 		r = [i for i in range(0, len(geometry)) if not geometry[i].isdigit()]
 		return {
-			"X": int(geometry[r[1]+1:r[2]]),
-			"Y": int(geometry[r[2]+1:])
+			"X": int(geometry[r[1] + 1:r[2]]),
+			"Y": int(geometry[r[2] + 1:])
 		}
 
 	def show(self):

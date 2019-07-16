@@ -11,6 +11,7 @@ class Helpers(object):
 		def switch():
 			def quit_app():
 				_ensure = GraphTk(None, None, True)
+				_ensure.add_size(350, 50, True)
 
 				def i_am_sure():
 					quit_win(_ensure)
@@ -22,7 +23,7 @@ class Helpers(object):
 				_ensure.add_title("Êtes vous sûr ?")
 				_ensure.add_label("Voulez vous vraiment quitter l'application ?", GraphTk.GraphTop)
 				_ensure.add_button("Oui, je quitte !", command=i_am_sure, side=GraphTk.GraphLeft)
-				_ensure.add_button("Non, je ne veux pas quitter", command=i_am_not_sure)
+				_ensure.add_button("Non, je ne veux pas quitter", command=i_am_not_sure, side=GraphTk.GraphRight)
 				_ensure.show()
 
 			def quit_win(__):
