@@ -19,10 +19,35 @@ class Callbacks(object):
 	MY_MOVIE_LIST = FilmManager()
 	LAST_MOVIE_ADDED: Film or None = None
 
+	STRING_VARS: [StringVar] = []
+
 	def __init__(self, movies_list_title: str or None = None):
 		if movies_list_title is not None:
 			Callbacks.MY_MOVIE_LIST.title(movies_list_title)
+		else:
+			Callbacks.MY_MOVIE_LIST.title('default title')
+
+		self.build_default_values_for_movies_list()
+
 		self.x1 = self.x2 = self.y1 = self.y2 = self.color = None
+
+	@staticmethod
+	def create_string_var() -> StringVar:
+		Callbacks.STRING_VARS.append(StringVar(None, ''))
+		return Callbacks.STRING_VARS[-1]
+
+	@staticmethod
+	def get_string_var() -> StringVar:
+		return Callbacks.STRING_VARS[-1]
+
+	def build_default_values_for_movies_list(self):
+		Callbacks.MY_MOVIE_LIST.film()\
+			.title('Spider Man Far From Home')\
+			.release_date(date.today())\
+			.realisation_date(date.today()).build()\
+			.film().title('toto')\
+			.release_date(date.today())\
+			.realisation_date(date.today()).build()
 
 	def p(self, num: int = POINT1, x: int or None = None, y: int or None = None):
 		if num is 1:
@@ -112,7 +137,7 @@ class Callbacks(object):
 		else:
 			window.__center__(True)
 
-		def reset_movies_list(to_quit: [GraphTk], movie_title: StringVar):
+		def reset_movies_list(to_quit: [GraphTk]):
 			MyHelpers.quit(MyHelpers.WINDOW, to_quit[0])
 
 			def save_size(old: GraphTk):
@@ -120,14 +145,21 @@ class Callbacks(object):
 				Callbacks.OLD_WINDOW_HEIGHT = old.get_height()
 				MyHelpers.quit(MyHelpers.WINDOW, to_quit[1])
 
-			Callbacks.MY_MOVIE_LIST.film()\
-				.title(movie_title.get())\
-				.release_date(date.today())\
-				.realisation_date(date.today())\
-				.build()
-			Callbacks.LAST_MOVIE_ADDED = Callbacks.MY_MOVIE_LIST.film(movie_title.get())
+			def add_film(title):
+				Callbacks.MY_MOVIE_LIST.film()\
+					.title(title)\
+					.release_date(date.today())\
+					.realisation_date(date.today())\
+					.build()
+				Callbacks.LAST_MOVIE_ADDED = Callbacks.MY_MOVIE_LIST.film(title)
+				# if Callbacks.LAST_MOVIE_ADDED.title() == "":
+				# 	add_film(title)
 
-			print(Callbacks.LAST_MOVIE_ADDED)
+			add_film(Callbacks.get_string_var().get())
+
+			for film in Callbacks.MY_MOVIE_LIST.films:
+				print(film.title()) if film.title() is not "" else print("__")
+			print("-----------------------------------------")
 
 			GraphTk(GraphTk.MOVIES_LIST, {
 				"before": lambda _: save_size(old=window)
@@ -137,12 +169,11 @@ class Callbacks(object):
 			_window = GraphTk(None, None, True)
 			_window.add_title("Ajouter un film")
 			_window.add_size(200, 100, True)
-			movie_title = StringVar(None, '', 'movie_title')
-			_window.add_entry(default_variable_text=movie_title, side=GraphTk.GraphTop)
-			_window.add_button(text='Valider', command=lambda: reset_movies_list([_window, window], movie_title))
+			_window.add_entry(default_variable_text=Callbacks.create_string_var(), side=GraphTk.GraphTop)
+			_window.add_button(text='Valider', command=lambda: reset_movies_list([_window, window]))
 			_window.show()
-
-		window.add_label(text='toto', side=GraphTk.GraphTop)
+		for movie in Callbacks.MY_MOVIE_LIST.films:
+			window.add_label(text=movie.title(), side=GraphTk.GraphTop)
 		window.add_button(text="Ajouter un film", command=add_movie)
 		MyHelpers.create_main_menu_buttons(window, GraphTk.GraphLeft, GraphTk.GraphRight)
 		window.show()

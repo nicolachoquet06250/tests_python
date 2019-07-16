@@ -1,5 +1,6 @@
 from datetime import date
 
+from dsl import FilmManager
 from dsl.Actor import Actor
 from dsl.Builder import Builder
 from dsl.Person import Person
@@ -84,7 +85,7 @@ class Film(Builder):
         self.releaseDate = release_date
         return self
 
-    def build(self):
+    def build(self) -> FilmManager:
         self.manager.films.append(self)
         return self.manager
 
